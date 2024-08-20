@@ -10,6 +10,7 @@ void sendLocation(double latitude, double longitude) {
   final locationData = {
     'latitude': latitude,
     'longitude': longitude,
+    'delivererId': '66c3b8cdc1a57bd3fa6f9f8c',
   };
   // Convertir le map en JSON string
   channel.sink.add(jsonEncode(locationData));
