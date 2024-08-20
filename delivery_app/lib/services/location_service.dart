@@ -1,7 +1,9 @@
 import 'package:geolocator/geolocator.dart';
 import 'dart:async';
 import 'package:delivery_app/services/web_socket_service.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
+import '../models/livreur.dart';
+import 'dart:convert';
 class LocationService {
   final StreamController<Position> _locationController = StreamController<Position>.broadcast();
   Stream<Position> get locationStream => _locationController.stream;
@@ -16,7 +18,7 @@ class LocationService {
   }
 
   void _startTracking() {
-    _timer = Timer.periodic(Duration(seconds: 30), (Timer timer) async {
+    _timer = Timer.periodic(Duration(seconds: 10), (Timer timer) async {
       try {
         bool serviceEnabled;
         LocationPermission permission;
@@ -43,10 +45,22 @@ class LocationService {
           return;
         }
 
+        final prefs = await SharedPreferences.getInstance();
+        final String? livreurJson = prefs.getString('user');
+        String delivererId = "";
+
+        if (livreurJson != null) {
+          Map<String, dynamic> livreurMap = jsonDecode(livreurJson);
+          Livreur livreur = Livreur.fromJson(livreurMap);
+          delivererId = livreur.id;
+        }
+
+
         // Si tout est correct, récupère la position actuelle
         Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.best);
         _locationController.add(position);
-        _sendLocationToServer(position);
+        _sendLocationToServer(position,delivererId);
+        
         //onSuccess('Localisation envoyée avec succès.');
       } catch (e) {
         onError('Erreur lors de la récupération de la localisation: $e');
@@ -54,10 +68,10 @@ class LocationService {
     });
   }
 
-  void _sendLocationToServer(Position position) {
+  void _sendLocationToServer(Position position,String delivererId) {
     try {
       print('Localisation envoyée: ${position.latitude}, ${position.longitude}');
-      webSocketService.sendLocation(position.latitude, position.longitude);
+      webSocketService.sendLocation(position.latitude, position.longitude,delivererId);
     } catch (e) {
       onError('Erreur lors de l\'envoi de la localisation au serveur: $e');
     }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-
+import '../services/auth_service.dart';
+import 'dart:convert';
 class LoginScreen extends StatefulWidget {
   @override
   _LoginPageState createState() => _LoginPageState();
@@ -10,15 +11,19 @@ class _LoginPageState extends State<LoginScreen> {
   String _username = '';
   String _password = '';
 
-  void _login() {
+   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-      
-      // Pour l'instant, on compare avec des données de test
-      if (_username == 'testuser' && _password == 'password123') {
-        Navigator.pushReplacementNamed(context, '/home');
+       _formKey.currentState!.save();
+        final success = await AuthService.login(_username, _password);
+         if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Connexion avec succes")),
+        );
+        Navigator.pushNamed(context, '/home');
       } else {
-        _showError('Nom d\'utilisateur ou mot de passe incorrect.');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Compte introuvable")),
+        );
       }
     }
   }
