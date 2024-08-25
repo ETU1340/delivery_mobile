@@ -1,16 +1,16 @@
-// widgets/delivery_map_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_marker_popup/flutter_map_marker_popup.dart'; // Importation confirmée
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:delivery_app/services/delivery_service.dart';
 import 'package:delivery_app/models/delivery.dart';
-import 'dart:async'; // Importez le package pour le Timer
+import 'dart:async';
 
 class DeliveryMapScreen extends StatefulWidget {
-  final String? deliveryId; // Ajoutez un paramètre pour l'identifiant de livraison
+  final String? deliveryId;
 
-  DeliveryMapScreen({this.deliveryId}); // Modifiez le constructeur
+  DeliveryMapScreen({this.deliveryId});
 
   @override
   _DeliveryMapScreenState createState() => _DeliveryMapScreenState();
@@ -19,20 +19,19 @@ class DeliveryMapScreen extends StatefulWidget {
 class _DeliveryMapScreenState extends State<DeliveryMapScreen> {
   final DeliveryService deliveryService = DeliveryService();
   LatLng? _currentPosition;
-
+  List<Delivery> _deliveries = [];
   Timer? _locationTimer;
+  final PopupController _popupController = PopupController(); // Contrôleur de popup
 
   @override
   void initState() {
     super.initState();
     _startLocationUpdates();
+    _loadDeliveries();
   }
 
   void _startLocationUpdates() {
-    // Appel initial pour obtenir la première position
     _getCurrentLocation();
-
-    // Met à jour la position toutes les 30 secondes (ajustez selon les besoins)
     _locationTimer = Timer.periodic(Duration(seconds: 30), (Timer t) => _getCurrentLocation());
   }
 
@@ -47,63 +46,145 @@ class _DeliveryMapScreenState extends State<DeliveryMapScreen> {
     }
   }
 
+  Future<void> _loadDeliveries() async {
+    try {
+      final deliveries = await DeliveryService.getDeliveriesNow();
+      setState(() {
+        _deliveries = deliveries;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors du chargement des livraisons')),
+      );
+    }
+  }
+
   @override
   void dispose() {
-    _locationTimer?.cancel(); // Annuler le Timer lorsque le widget est détruit
+    _locationTimer?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    List<Delivery> deliveries = deliveryService.deliveries;
-
-    // Filtrer les livraisons si un identifiant est fourni
     List<Delivery> deliveriesToShow = widget.deliveryId != null
-        ? deliveries.where((delivery) => delivery.id == widget.deliveryId).toList()
-        : deliveries;
+        ? _deliveries.where((delivery) => delivery.id == widget.deliveryId).toList()
+        : _deliveries;
 
     return Scaffold(
       appBar: AppBar(
         title: Text('Carte des Livraisons'),
       ),
-      body: FlutterMap(
-        options: MapOptions(
-          center: _currentPosition ?? LatLng(-18.8792, 47.5079), // Coordonnées par défaut si _currentPosition est null
-          zoom: 12.0, // Zoom ajusté pour cadrer sur la ville
-        ),
+      body: Stack(
         children: [
-          TileLayer(
-            urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-            subdomains: ['a', 'b', 'c'],
-          ),
-          MarkerLayer(
-            markers: [
-              // Marqueur pour la position actuelle
-              if (_currentPosition != null)
-                Marker(
-                  width: 80.0,
-                  height: 80.0,
-                  point: _currentPosition!,
-                  builder: (ctx) => Icon(
-                    Icons.my_location,
-                    color: Colors.blue, // Couleur différente pour la position actuelle
-                    size: 30.0,
-                  ),
+          FlutterMap(
+            options: MapOptions(
+              center: _currentPosition ?? LatLng(-18.8792, 47.5079),
+              zoom: 13.0,
+              onTap: (_, __) => _popupController.hideAllPopups(), // Masquer les popups au clic en dehors
+            ),
+            children: [
+              TileLayer(
+                urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                subdomains: ['a', 'b', 'c'],
+              ),
+              MarkerLayer(
+                markers: [
+                  if (_currentPosition != null)
+                    Marker(
+                      width: 80.0,
+                      height: 80.0,
+                      point: _currentPosition!,
+                      builder: (ctx) => Icon(
+                        Icons.my_location,
+                        color: Colors.blue,
+                        size: 25.0,
+                      ),
+                    ),
+                  ...deliveriesToShow.map((delivery) {
+                    return Marker(
+                      width: 80.0,
+                      height: 80.0,
+                      point: LatLng(delivery.deliveryAddress.latitude, delivery.deliveryAddress.longitude),
+                      builder: (ctx) => Icon(
+                        Icons.person_pin_circle,
+                        color: Colors.red,
+                        size: 25.0,
+                      ),
+                    );
+                  }).toList(),
+                ],
+              ),
+              PopupMarkerLayerWidget(
+                options: PopupMarkerLayerOptions(
+                  popupController: _popupController,
+                  markers: deliveriesToShow.map((delivery) {
+                    return Marker(
+                      width: 80.0,
+                      height: 80.0,
+                      point: LatLng(delivery.deliveryAddress.latitude, delivery.deliveryAddress.longitude),
+                      builder: (ctx) => Icon(
+                        Icons.person_pin_circle,
+                        color: Colors.red,
+                        size: 25.0,
+                      ),
+                    );
+                  }).toList(),
+                    popupDisplayOptions: PopupDisplayOptions(
+                    builder: (BuildContext context, Marker marker) {
+                    final delivery = deliveriesToShow.firstWhere(
+                        (delivery) =>
+                            LatLng(delivery.deliveryAddress.latitude, delivery.deliveryAddress.longitude) ==
+                            marker.point);
+                    return Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Livraison/${delivery.id}',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            Text('Client: ${delivery.clientName}'),
+                            Text('Télephone: ${delivery.clientSurname}'),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
                 ),
-              // Marqueurs pour les livraisons
-              ...deliveriesToShow.map((delivery) {
-                return Marker(
-                  width: 80.0,
-                  height: 80.0,
-                  point: delivery.position,
-                  builder: (ctx) => Icon(
-                    Icons.location_on,
-                    color: delivery.status == 'En cours' ? Colors.green : Colors.red,
-                    size: 40.0,
-                  ),
-                );
-              }).toList(),
+                ),
+              ),
             ],
+          ),
+          Positioned(
+            bottom: 16.0,
+            left: 16.0,
+            child: Container(
+              padding: EdgeInsets.all(8.0),
+              color: Colors.white,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.my_location, color: Colors.blue, size: 20.0),
+                      SizedBox(width: 4.0),
+                      Text('Position Actuelle'),
+                    ],
+                  ),
+                  SizedBox(height: 4.0),
+                  Row(
+                    children: [
+                      Icon(Icons.person_pin_circle, color: Colors.red, size: 20.0),
+                      SizedBox(width: 4.0),
+                      Text('Livraison'),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),

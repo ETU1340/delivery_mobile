@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../services/delivery_service.dart';
-import'../screens/delivery_map_screen.dart';
+import '../screens/delivery_map_screen.dart';
+import '../models/delivery.dart';
 
 class DeliverySchedule extends StatefulWidget {
   @override
@@ -9,8 +10,44 @@ class DeliverySchedule extends StatefulWidget {
 }
 
 class _DeliveryScheduleState extends State<DeliverySchedule> {
-  final DeliveryService deliveryService = DeliveryService();
+  List<Delivery> _deliveries = []; // Liste des livraisons
   DateTime _selectedDay = DateTime.now();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDeliveries();
+  }
+
+  Future<void> _loadDeliveries() async {
+    try {
+      final deliveries = await DeliveryService.getDeliveries();
+      setState(() {
+        _deliveries = deliveries;
+      });
+    } catch (e) {
+      // Gestion des erreurs
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors du chargement des livraisons')),
+      );
+    }
+  }
+
+  // Méthode pour obtenir la couleur en fonction du statut de la livraison
+  Color _getColorForStatus(String status) {
+    switch (status) {
+      case 'En attente':
+        return Colors.orange; // Couleur pour les livraisons "En attente"
+      case 'En cours':
+        return Colors.blue; // Couleur pour les livraisons "En cours"
+      case 'Terminé':
+        return Colors.green; // Couleur pour les livraisons "Terminé"
+      case 'Annulé':
+        return Colors.red; // Couleur pour les livraisons "Annulé"
+      default:
+        return Colors.grey; // Couleur par défaut pour les autres statuts
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,48 +69,77 @@ class _DeliveryScheduleState extends State<DeliverySchedule> {
             },
           ),
           Expanded(
-            child: ListView(
-              children: deliveryService.deliveries
+            child: ListView.separated(
+              separatorBuilder: (context, index) => Divider(), // Séparateur entre les livraisons
+              itemCount: _deliveries
                   .where((delivery) =>
-                      delivery.dateTime.year == _selectedDay.year &&
-                      delivery.dateTime.month == _selectedDay.month &&
-                      delivery.dateTime.day == _selectedDay.day)
-                  .map((delivery) {
-                    return ListTile(
-                      title: Text(delivery.title),
-                      subtitle: Text(
-                        'Heure: ${delivery.dateTime.toLocal().toString().split(' ')[1]} - Statut: ${delivery.status}',
-                      ),
-                      trailing: PopupMenuButton<String>(
-                        onSelected: (value) {
-                          if (value == 'localisation') {
-                            // Navigate to the map screen with the delivery location
+                      delivery.deliveryDateTime.year == _selectedDay.year &&
+                      delivery.deliveryDateTime.month == _selectedDay.month &&
+                      delivery.deliveryDateTime.day == _selectedDay.day)
+                  .length,
+              itemBuilder: (context, index) {
+                final delivery = _deliveries
+                    .where((delivery) =>
+                        delivery.deliveryDateTime.year == _selectedDay.year &&
+                        delivery.deliveryDateTime.month == _selectedDay.month &&
+                        delivery.deliveryDateTime.day == _selectedDay.day)
+                    .toList()[index];
+                
+                return ListTile(
+                  title: Text(
+                    "Livraison/${delivery.id}",
+                  ),
+                  subtitle: Text(
+                    'Heure: ${delivery.deliveryDateTime.toLocal().toString().split(' ')[1]} - Statut: ${delivery.status}',
+                    style: TextStyle(color: _getColorForStatus(delivery.status)), // Appliquer couleur au sous-titre
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Afficher le bouton de localisation
+                      if (delivery.status != "Terminé" && delivery.status != "Annulé")
+                        IconButton(
+                          icon: Icon(Icons.map, color: _getColorForStatus(delivery.status)),
+                          onPressed: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => DeliveryMapScreen(deliveryId:delivery.id),
+                                builder: (context) => DeliveryMapScreen(deliveryId: delivery.id),
                               ),
                             );
-                          } else if (value == 'validation') {
-                            // Prompt for validation code
-                            _showValidationDialog(context, delivery.id);
-                          }
-                        },
-                        itemBuilder: (BuildContext context) {
-                          return [
-                            PopupMenuItem(
-                              value: 'localisation',
-                              child: Text('Voir sur la carte'),
-                            ),
-                            PopupMenuItem(
-                              value: 'validation',
-                              child: Text('Valider la livraison'),
-                            ),
-                          ];
-                        },
-                      ),
-                    );
-                  }).toList(),
+                          },
+                        ),
+                      // Afficher le bouton selon le statut
+                      if (delivery.status == 'En attente')
+                        IconButton(
+                          icon: Icon(Icons.play_circle_outline, color: _getColorForStatus(delivery.status)),
+                          onPressed: () async {
+                            // Vérifier si une autre livraison est "En cours"
+                            bool hasOngoingDelivery = _deliveries.any((d) => d.status == 'En cours');
+
+                            if (hasOngoingDelivery) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Impossible de prendre en charge cette livraison. Une autre livraison est déjà en cours.'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            } else {
+                              await _takeChargeDelivery(delivery);
+                            }
+                          },
+                        )
+                      else if (delivery.status == 'En cours')
+                        IconButton(
+                          icon: Icon(Icons.check_circle_outline, color: _getColorForStatus(delivery.status)),
+                          onPressed: () {
+                            _showValidationDialog(context, delivery.id, delivery.validationCode);
+                          },
+                        ),
+                    ],
+                  ),
+                );
+              },
             ),
           ),
         ],
@@ -81,7 +147,24 @@ class _DeliveryScheduleState extends State<DeliverySchedule> {
     );
   }
 
-  void _showValidationDialog(BuildContext context, String deliveryId) {
+  Future<void> _takeChargeDelivery(Delivery delivery) async {
+    try {
+      await DeliveryService.updateDeliveryStatus(delivery.id, 'En cours');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Livraison prise en charge')),
+      );
+      _loadDeliveries(); // Recharger les livraisons après la mise à jour du statut
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur lors de la prise en charge de la livraison'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _showValidationDialog(BuildContext context, String deliveryId, String code) {
     final TextEditingController codeController = TextEditingController();
 
     showDialog(
@@ -102,18 +185,25 @@ class _DeliveryScheduleState extends State<DeliverySchedule> {
             ),
             TextButton(
               child: Text('Valider'),
-              onPressed: () {
-                // Vérifiez le code de validation ici
-                if (codeController.text == '1234') { // exemple de code correct
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Livraison validée')),
-                  );
+              onPressed: () async {
+                if (codeController.text == code) {
+                  try {
+                    await DeliveryService.updateDeliveryStatus(deliveryId, 'Terminé');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Livraison validée')),
+                    );
+                    Navigator.of(context).pop();
+                    _loadDeliveries(); // Recharger les livraisons après la validation
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Erreur lors de la validation de la livraison'), backgroundColor: Colors.red),
+                    );
+                  }
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Code incorrect'), backgroundColor: Colors.red),
                   );
                 }
-                Navigator.of(context).pop();
               },
             ),
           ],

@@ -77,6 +77,13 @@ class _MainMenuState extends State<MainMenu> with SingleTickerProviderStateMixin
                 Navigator.push(context, MaterialPageRoute(builder: (context) => DeliverySchedule()));
               },
             ),
+              ListTile(
+              title: Text("Indisponnibilité"),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (context) => MainMenu()));
+              },
+            ),
           ],
         ),
       ),

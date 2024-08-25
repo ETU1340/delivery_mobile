@@ -19,7 +19,7 @@ class AuthService {
       final prefs = await SharedPreferences.getInstance();
       prefs.setString('authToken', data['token']);
       Livreur livreur = Livreur.fromJson(data['user']);
-      prefs.setString('user', jsonEncode(livreur.toJson()));
+      prefs.setString('livreur', jsonEncode(livreur.toJson()));
       return true;
     } else {
       return false;

@@ -1,44 +1,88 @@
 // services/delivery_service.dart
 import '../models/delivery.dart';
-import 'package:latlong2/latlong.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
+import '../utils/api_urls.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'livreur_service.dart';
+import '../models/livreur.dart';
 class DeliveryService {
-  List<Delivery> get deliveries => [
-    Delivery(
-      id: '1',
-      title: 'Livraison 1',
-      position: LatLng(-18.8792 + 0.01, 47.5079 + 0.01),  // Position légèrement modifiée
-      status: 'En cours',
-      dateTime: DateTime(2024, 8, 17, 9, 30),  // Date et heure spécifiques
-    ),
-    Delivery(
-      id: '2',
-      title: 'Livraison 2',
-      position: LatLng(-18.8792 + 0.02, 47.5079 - 0.02),  // Position légèrement modifiée
-      status: 'Planifiée',
-      dateTime: DateTime(2024, 8, 17, 14, 00),  // Date et heure spécifiques
-    ),
-    Delivery(
-      id: '3',
-      title: 'Livraison 3',
-      position: LatLng(-18.8792 - 0.01, 47.5079 + 0.03),  // Position légèrement modifiée
-      status: 'Planifiée',
-      dateTime: DateTime(2024, 8, 20, 14, 00),  // Date et heure spécifiques
-    ),
-    Delivery(
-      id: '4',
-      title: 'Livraison 4',
-      position: LatLng(-18.8792 - 0.03, 47.5079 - 0.01),  // Position légèrement modifiée
-      status: 'En cours',
-      dateTime: DateTime(2024, 8, 20, 16, 00),  // Date et heure spécifiques
-    ),
-    Delivery(
-      id: '5',
-      title: 'Livraison 5',
-      position: LatLng(-18.8792 + 0.015, 47.5079 - 0.025),  // Position légèrement modifiée
-      status: 'Planifiée',
-      dateTime: DateTime(2024, 8, 21, 10, 00),  // Date et heure spécifiques
-    ),
-    // Ajoutez d'autres livraisons ici avec des positions variées mais dans les limites d'Antananarivo
-  ];
+  static Future<List<Delivery>> getDeliveries() async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('authToken');
+  Livreur? livreur =   await LivreurService.getLivreurSession();
+  try {
+    final response = await http.get(
+      Uri.parse(ApiUrls.deliveries+'/livreur/'+livreur!.id),
+      headers: {'x-auth-token': '$token'},
+    );
+
+    if (response.statusCode == 200) {
+      List jsonResponse = json.decode(response.body);
+      print("response");
+      print(response.body);
+      return jsonResponse.map((delivery) => Delivery.fromJson(delivery)).toList();
+    } else {
+      print('Failed to load deliveries with status code: ${response.statusCode}');
+      throw Exception('Failed to load deliveries with status code: ${response.statusCode}');
+    }
+  } catch (error) {
+    print('An error occurred: $error');
+    throw Exception('An error occurred while fetching deliveries: $error');
+  }
+}
+
+
+  static Future<List<Delivery>> getDeliveriesNow() async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('authToken');
+  Livreur? livreur =   await LivreurService.getLivreurSession();
+  try {
+    final response = await http.get(
+      Uri.parse(ApiUrls.deliveries+'/now/'+livreur!.id),
+      headers: {'x-auth-token': '$token'},
+    );
+
+    if (response.statusCode == 200) {
+      List jsonResponse = json.decode(response.body);
+      print("response");
+      print(response.body);
+      return jsonResponse.map((delivery) => Delivery.fromJson(delivery)).toList();
+    } else {
+      print('Failed to load deliveries with status code: ${response.statusCode}');
+      throw Exception('Failed to load deliveries with status code: ${response.statusCode}');
+    }
+  } catch (error) {
+    print('An error occurred: $error');
+    throw Exception('An error occurred while fetching deliveries: $error');
+  }
+}
+
+   static Future<void> updateDeliveryStatus(String deliveryId, String status) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('authToken');
+    final url = Uri.parse(ApiUrls.deliveries+'/'+deliveryId);
+
+    try {
+      final response = await http.put(
+        url,
+        headers: {'x-auth-token': '$token','Content-Type': 'application/json',},
+        body: jsonEncode({'status': status}),
+      );
+
+      if (response.statusCode == 200) {
+        // Statut mis à jour avec succès
+        print('Statut de la livraison mis à jour avec succès');
+      } else {
+        // Erreur lors de la mise à jour du statut
+        throw Exception('Failed to update delivery status');
+      }
+    } catch (e) {
+      // Gestion des erreurs
+      throw Exception('Erreur lors de la mise à jour du statut de la livraison: $e');
+    }
+  }
+
+
+
 }

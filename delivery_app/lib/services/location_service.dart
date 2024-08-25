@@ -4,6 +4,7 @@ import 'package:delivery_app/services/web_socket_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/livreur.dart';
 import 'dart:convert';
+import 'livreur_service.dart';
 class LocationService {
   final StreamController<Position> _locationController = StreamController<Position>.broadcast();
   Stream<Position> get locationStream => _locationController.stream;
@@ -44,22 +45,14 @@ class LocationService {
           onError('Les permissions de localisation sont refusées de façon permanente.');
           return;
         }
-
-        final prefs = await SharedPreferences.getInstance();
-        final String? livreurJson = prefs.getString('user');
-        String delivererId = "";
-
-        if (livreurJson != null) {
-          Map<String, dynamic> livreurMap = jsonDecode(livreurJson);
-          Livreur livreur = Livreur.fromJson(livreurMap);
-          delivererId = livreur.id;
-        }
+        
+        Livreur? livreur =   await LivreurService.getLivreurSession();
 
 
         // Si tout est correct, récupère la position actuelle
         Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.best);
         _locationController.add(position);
-        _sendLocationToServer(position,delivererId);
+        _sendLocationToServer(position,livreur!.id);
         
         //onSuccess('Localisation envoyée avec succès.');
       } catch (e) {
