@@ -1,6 +1,6 @@
 import 'package:geolocator/geolocator.dart';
 import 'dart:async';
-import 'package:delivery_app/services/web_socket_service.dart';
+import 'package:delivery_app/services/socket_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/livreur.dart';
 import 'dart:convert';
@@ -8,7 +8,8 @@ import 'livreur_service.dart';
 class LocationService {
   final StreamController<Position> _locationController = StreamController<Position>.broadcast();
   Stream<Position> get locationStream => _locationController.stream;
-  final WebSocketService webSocketService = WebSocketService('wss://location.psad.hco.mg/');
+  //final WebSocketService webSocketService = WebSocketService('wss://location.psad.hco.mg/');
+  final SocketService socketService = SocketService('http://localhost:8080');
   Timer? _timer;
 
   final void Function(String message) onError;
@@ -64,7 +65,7 @@ class LocationService {
   void _sendLocationToServer(Position position,String delivererId) {
     try {
       print('Localisation envoyée: ${position.latitude}, ${position.longitude}');
-      webSocketService.sendLocation(position.latitude, position.longitude,delivererId);
+      socketService.sendLocation(position.latitude, position.longitude,delivererId);
     } catch (e) {
       onError('Erreur lors de l\'envoi de la localisation au serveur: $e');
     }

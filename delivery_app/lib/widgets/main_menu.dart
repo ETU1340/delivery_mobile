@@ -4,6 +4,9 @@ import '../widgets/delivery_schedule.dart';
 import '../screens/create_unavailability_screen.dart'; // Demande d'indisponibilité
 import '../screens/list_unavailability_screen.dart';
 import '../services/location_service.dart';
+import '../services/livreur_service.dart';
+import '../models/livreur.dart';
+import '../screens/chat_screen.dart';
 
 class MainMenu extends StatefulWidget {
   @override
@@ -83,6 +86,20 @@ class _MainMenuState extends State<MainMenu> with SingleTickerProviderStateMixin
                 Navigator.pop(context);
                 Navigator.push(context, MaterialPageRoute(builder: (context) => MainMenu()));
               },
+            ),
+              ListTile(
+              title: Text("Discussion avec le manager"), // Nouvelle option pour le chat
+              onTap: () async {
+                Navigator.pop(context);
+
+                Livreur? livreur =   await LivreurService.getLivreurSession();
+
+                Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen(
+                  roomId: livreur!.id,  // Utilisez un identifiant unique pour la salle de chat
+                  delivererId: livreur!.id,  // Remplacez par l'ID du livreur
+                  managerId: livreur!.managerId!,  // Remplacez par l'ID du manager
+                )));
+                   },
             ),
           ],
         ),
