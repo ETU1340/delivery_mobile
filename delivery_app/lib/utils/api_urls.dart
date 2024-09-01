@@ -8,7 +8,10 @@ class ApiUrls {
   // Livreur URLs
   static const String livreurs = '$baseUrl/livreurs';
 
-    static const String deliveries = '$baseUrl/deliveries';
+  static const String deliveries = '$baseUrl/deliveries';
+
+  //discussion
+  static const String chat = '$baseUrl/chats';
 
   // Exemple d'URL avec un paramètre
   static String getLivreurDetails(String id) => '$baseUrl/livreurs/$id';

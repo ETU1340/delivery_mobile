@@ -37,9 +37,10 @@ class SocketService extends ChangeNotifier {
     socket.emit('updateLocation', locationData);
   }
 
-  void sendMessage(String senderId, String receiverId, String message, String roomId) {
+  void sendMessage(String senderId, String receiverId, String message, String roomId, String role) {
     final messageData = {
       'senderId': senderId,
+      'roleSender': role,
       'receiverId': receiverId,
       'message': message,
       'timestamp': DateTime.now().toIso8601String(),

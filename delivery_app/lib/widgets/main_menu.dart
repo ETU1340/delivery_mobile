@@ -93,11 +93,13 @@ class _MainMenuState extends State<MainMenu> with SingleTickerProviderStateMixin
                 Navigator.pop(context);
 
                 Livreur? livreur =   await LivreurService.getLivreurSession();
+                print(livreur!.managerId!);
 
                 Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen(
                   roomId: livreur!.id,  // Utilisez un identifiant unique pour la salle de chat
                   delivererId: livreur!.id,  // Remplacez par l'ID du livreur
-                  managerId: livreur!.managerId!,  // Remplacez par l'ID du manager
+                  managerId: livreur!.managerId!,
+                  role: livreur!.role!  // Remplacez par l'ID du manager
                 )));
                    },
             ),
