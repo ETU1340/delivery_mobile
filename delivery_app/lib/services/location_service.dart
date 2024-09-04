@@ -5,11 +5,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/livreur.dart';
 import 'dart:convert';
 import 'livreur_service.dart';
+import '../utils/api_urls.dart';
 class LocationService {
   final StreamController<Position> _locationController = StreamController<Position>.broadcast();
   Stream<Position> get locationStream => _locationController.stream;
   //final WebSocketService webSocketService = WebSocketService('wss://location.psad.hco.mg/');
-  final SocketService socketService = SocketService('http://localhost:8080');
+  final SocketService socketService = SocketService(ApiUrls.socketUrl);
   Timer? _timer;
 
   final void Function(String message) onError;

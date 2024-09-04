@@ -3,12 +3,13 @@ import 'widgets/main_menu.dart';
 import './screens/login_screen.dart';
 import 'services/socket_service.dart';
 import 'package:provider/provider.dart';
+import 'utils/api_urls.dart';
 
 void main() {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => SocketService('http://localhost:8080')),
+        ChangeNotifierProvider(create: (_) => SocketService(ApiUrls.socketUrl)),
       ],
       child: MyApp(),
     ),
