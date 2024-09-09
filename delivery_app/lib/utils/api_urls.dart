@@ -14,6 +14,7 @@ class ApiUrls {
   static const String chat = '$baseUrl/chats';
 
   static const String socketUrl = 'https://location.psad.hco.mg';
+  //static const String socketUrl = 'http://localhost:8080';
 
   // Exemple d'URL avec un paramètre
   static String getLivreurDetails(String id) => '$baseUrl/livreurs/$id';

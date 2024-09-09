@@ -3,6 +3,7 @@ import 'package:table_calendar/table_calendar.dart';
 import '../services/delivery_service.dart';
 import '../screens/delivery_map_screen.dart';
 import '../models/delivery.dart';
+import 'package:intl/intl.dart'; // Importation pour le formatage de l'heure
 
 class DeliverySchedule extends StatefulWidget {
   @override
@@ -12,6 +13,7 @@ class DeliverySchedule extends StatefulWidget {
 class _DeliveryScheduleState extends State<DeliverySchedule> {
   List<Delivery> _deliveries = []; // Liste des livraisons
   DateTime _selectedDay = DateTime.now();
+  final DateFormat _timeFormat = DateFormat('HH:mm'); // Format d'heure
 
   @override
   void initState() {
@@ -53,7 +55,8 @@ class _DeliveryScheduleState extends State<DeliverySchedule> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Planning des Livraisons'),
+        title: Text('Planning des Livraisons', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.blue,
       ),
       body: Column(
         children: [
@@ -67,6 +70,16 @@ class _DeliveryScheduleState extends State<DeliverySchedule> {
                 _selectedDay = selectedDay;
               });
             },
+            calendarStyle: CalendarStyle(
+              todayDecoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.6),
+                shape: BoxShape.circle,
+              ),
+              selectedDecoration: BoxDecoration(
+                color: Colors.blue,
+                shape: BoxShape.circle,
+              ),
+            ),
           ),
           Expanded(
             child: ListView.separated(
@@ -84,13 +97,14 @@ class _DeliveryScheduleState extends State<DeliverySchedule> {
                         delivery.deliveryDateTime.month == _selectedDay.month &&
                         delivery.deliveryDateTime.day == _selectedDay.day)
                     .toList()[index];
-                
+
                 return ListTile(
                   title: Text(
-                    "Livraison/${delivery.id}",
+                    "${delivery.reference}",
+                    style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   subtitle: Text(
-                    'Heure: ${delivery.deliveryDateTime.toLocal().toString().split(' ')[1]} - Statut: ${delivery.status}',
+                    'Heure: ${_timeFormat.format(delivery.deliveryDateTime)} - Statut: ${delivery.status}',
                     style: TextStyle(color: _getColorForStatus(delivery.status)), // Appliquer couleur au sous-titre
                   ),
                   trailing: Row(

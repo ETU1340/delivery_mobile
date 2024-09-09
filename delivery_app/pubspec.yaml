@@ -42,6 +42,8 @@ dependencies:
   logging: ^1.0.2
   flutter_map_marker_popup: ^5.0.0
   socket_io_client: ^2.0.0
+  flutter_local_notifications: ^9.8.2
+
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -49,8 +51,18 @@ dependencies:
   cupertino_icons: ^1.0.6
 
 dev_dependencies:
-  flutter_test:
-    sdk: flutter
+  flutter_launcher_icons: "^0.9.2"
+  flutter_native_splash: ^2.0.0
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon.png"  # Spécifiez le chemin de votre icône
+flutter_native_splash:
+  color: "#ffffff"  # Couleur de fond du splash screen
+  image: assets/icon.png  # Chemin vers votre image de splash screen
+  android: true
+  ios: true
  
 
   # The "flutter_lints" package below contains a set of recommended lints to

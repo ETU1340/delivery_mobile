@@ -1,4 +1,4 @@
-import 'package:geolocator/geolocator.dart';
+/*import 'package:geolocator/geolocator.dart';
 import 'dart:async';
 import 'package:delivery_app/services/socket_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -21,7 +21,7 @@ class LocationService {
   }
 
   void _startTracking() {
-    _timer = Timer.periodic(Duration(seconds: 10), (Timer timer) async {
+    _timer = Timer.periodic(Duration(seconds: 5), (Timer timer) async {
       try {
         bool serviceEnabled;
         LocationPermission permission;
@@ -70,6 +70,41 @@ class LocationService {
     } catch (e) {
       onError('Erreur lors de l\'envoi de la localisation au serveur: $e');
     }
+  }
+
+  void dispose() {
+    _timer?.cancel();
+    _locationController.close();
+  }
+}
+*/
+import 'package:geolocator/geolocator.dart';
+import 'dart:async';
+
+class LocationService {
+  static final LocationService _instance = LocationService._internal();
+
+  factory LocationService() {
+    return _instance;
+  }
+
+  LocationService._internal() {
+    _startTracking();
+  }
+
+  final StreamController<Position> _locationController = StreamController<Position>.broadcast();
+  Stream<Position> get locationStream => _locationController.stream;
+  Timer? _timer;
+
+  void _startTracking() {
+    _timer = Timer.periodic(Duration(seconds: 8), (Timer timer) async {
+      try {
+        Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.best);
+        _locationController.add(position);
+      } catch (e) {
+        print('Erreur lors de la récupération de la localisation : $e');
+      }
+    });
   }
 
   void dispose() {

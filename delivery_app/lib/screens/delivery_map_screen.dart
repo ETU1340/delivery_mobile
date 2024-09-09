@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:delivery_app/services/delivery_service.dart';
 import 'package:delivery_app/models/delivery.dart';
 import 'dart:async';
+import 'package:delivery_app/services/location_service.dart'; // Importer le service
 
 class DeliveryMapScreen extends StatefulWidget {
   final String? deliveryId;
@@ -19,6 +20,7 @@ class DeliveryMapScreen extends StatefulWidget {
 class _DeliveryMapScreenState extends State<DeliveryMapScreen> {
   final DeliveryService deliveryService = DeliveryService();
   LatLng? _currentPosition;
+  late StreamSubscription<Position> _locationSubscription;
   List<Delivery> _deliveries = [];
   Timer? _locationTimer;
   final PopupController _popupController = PopupController(); // Contrôleur de popup
@@ -26,13 +28,21 @@ class _DeliveryMapScreenState extends State<DeliveryMapScreen> {
   @override
   void initState() {
     super.initState();
-    _startLocationUpdates();
+    _locationSubscription = LocationService().locationStream.listen((Position position) {
+      setState(() {
+        print('miova');
+        print(position.latitude);
+        _currentPosition = LatLng(position.latitude, position.longitude);
+      });
+    });
+
+   // _startLocationUpdates();
     _loadDeliveries();
   }
-
+/*
   void _startLocationUpdates() {
     _getCurrentLocation();
-    _locationTimer = Timer.periodic(Duration(seconds: 30), (Timer t) => _getCurrentLocation());
+    _locationTimer = Timer.periodic(Duration(seconds: 5), (Timer t) => _getCurrentLocation());
   }
 
   void _getCurrentLocation() async {
@@ -45,7 +55,7 @@ class _DeliveryMapScreenState extends State<DeliveryMapScreen> {
       print('Erreur lors de la récupération de la localisation : $e');
     }
   }
-
+*/
   Future<void> _loadDeliveries() async {
     try {
       final deliveries = await DeliveryService.getDeliveriesNow();
@@ -61,7 +71,8 @@ class _DeliveryMapScreenState extends State<DeliveryMapScreen> {
 
   @override
   void dispose() {
-    _locationTimer?.cancel();
+    //_locationTimer?.cancel();
+    _locationSubscription.cancel();
     super.dispose();
   }
 

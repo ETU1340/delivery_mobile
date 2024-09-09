@@ -55,16 +55,36 @@ class _UnavailabilityFormState extends State<UnavailabilityForm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Signaler une indisponibilité')),
-      body: Padding(
+      appBar: AppBar(
+        title: Text(
+          'Indisponibilité',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.blueAccent,
+      ),
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Text(
+                'Raison de l\'indisponibilité',
+                style: TextStyle(
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blueAccent,
+                ),
+              ),
+              SizedBox(height: 8),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Raison'),
+                decoration: InputDecoration(
+                  hintText: 'Entrez la raison',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
                 onSaved: (value) {
                   _reason = value ?? '';
                 },
@@ -77,19 +97,62 @@ class _UnavailabilityFormState extends State<UnavailabilityForm> {
               ),
               SizedBox(height: 16),
               ListTile(
-                title: Text('Date de début: ${_startDate != null ? DateFormat.yMd().format(_startDate!) : 'Sélectionner une date'}'),
-                trailing: Icon(Icons.calendar_today),
+                contentPadding: EdgeInsets.symmetric(horizontal: 0),
+                title: Text(
+                  'Date de début',
+                  style: TextStyle(
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blueAccent,
+                  ),
+                ),
+                subtitle: Text(
+                  _startDate != null
+                      ? DateFormat.yMd().format(_startDate!)
+                      : 'Sélectionner une date',
+                  style: TextStyle(color: Colors.black),
+                ),
+                trailing: Icon(Icons.calendar_today, color: Colors.blueAccent),
                 onTap: _pickStartDate,
               ),
+              SizedBox(height: 8),
               ListTile(
-                title: Text('Date de fin: ${_endDate != null ? DateFormat.yMd().format(_endDate!) : 'Sélectionner une date'}'),
-                trailing: Icon(Icons.calendar_today),
+                contentPadding: EdgeInsets.symmetric(horizontal: 0),
+                title: Text(
+                  'Date de fin',
+                  style: TextStyle(
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blueAccent,
+                  ),
+                ),
+                subtitle: Text(
+                  _endDate != null
+                      ? DateFormat.yMd().format(_endDate!)
+                      : 'Sélectionner une date',
+                  style: TextStyle(color: Colors.black),
+                ),
+                trailing: Icon(Icons.calendar_today, color: Colors.blueAccent),
                 onTap: _pickEndDate,
               ),
-              SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _submitForm,
-                child: Text('Soumettre'),
+              SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _submitForm,
+                  icon: Icon(Icons.send, color: Colors.white),
+                  label: Text(
+                    'Soumettre',
+                    style: TextStyle(fontSize: 16.0),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueAccent,
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),

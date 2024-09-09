@@ -19,6 +19,7 @@ class DeliveryService {
 
     if (response.statusCode == 200) {
       List jsonResponse = json.decode(response.body);
+  
       print("response");
       print(response.body);
       return jsonResponse.map((delivery) => Delivery.fromJson(delivery)).toList();
@@ -45,6 +46,7 @@ class DeliveryService {
 
     if (response.statusCode == 200) {
       List jsonResponse = json.decode(response.body);
+          print(token);
       print("response");
       print(response.body);
       return jsonResponse.map((delivery) => Delivery.fromJson(delivery)).toList();

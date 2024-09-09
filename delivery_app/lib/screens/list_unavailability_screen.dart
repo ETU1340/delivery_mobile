@@ -1,4 +1,3 @@
-// screens/unavailability_list_screen.dart
 import 'package:flutter/material.dart';
 
 class UnavailabilityList extends StatelessWidget {
@@ -10,39 +9,42 @@ class UnavailabilityList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DataTable(
-      columns: [
-        DataColumn(label: Text('Raison')),
-        DataColumn(label: Text('Date Début')),
-        DataColumn(label: Text('Date Fin')),
-        DataColumn(label: Text('Statut')),
-      ],
-      rows: unavailabilityList.map((unavailability) {
-        Color statusColor;
-        switch (unavailability['status']) {
-          case 'Approuvé':
-            statusColor = Colors.green;
-            break;
-          case 'En attente':
-            statusColor = Colors.orange;
-            break;
-          case 'Refusé':
-            statusColor = Colors.red;
-            break;
-          default:
-            statusColor = Colors.grey;
-        }
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal, // Permet de faire défiler horizontalement
+      child: DataTable(
+        columns: [
+          DataColumn(label: Text('Raison')),
+          DataColumn(label: Text('Date Début')),
+          DataColumn(label: Text('Date Fin')),
+          DataColumn(label: Text('Statut')),
+        ],
+        rows: unavailabilityList.map((unavailability) {
+          Color statusColor;
+          switch (unavailability['status']) {
+            case 'Approuvé':
+              statusColor = Colors.green;
+              break;
+            case 'En attente':
+              statusColor = Colors.orange;
+              break;
+            case 'Refusé':
+              statusColor = Colors.red;
+              break;
+            default:
+              statusColor = Colors.grey;
+          }
 
-        return DataRow(cells: [
-          DataCell(Text(unavailability['reason'])),
-          DataCell(Text(unavailability['startDate'])),
-          DataCell(Text(unavailability['endDate'])),
-          DataCell(Text(
-            unavailability['status'],
-            style: TextStyle(color: statusColor),
-          )),
-        ]);
-      }).toList(),
+          return DataRow(cells: [
+            DataCell(Text(unavailability['reason'])),
+            DataCell(Text(unavailability['startDate'])),
+            DataCell(Text(unavailability['endDate'])),
+            DataCell(Text(
+              unavailability['status'],
+              style: TextStyle(color: statusColor),
+            )),
+          ]);
+        }).toList(),
+      ),
     );
   }
 }
