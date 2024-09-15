@@ -22,7 +22,6 @@ class _DeliveryMapScreenState extends State<DeliveryMapScreen> {
   LatLng? _currentPosition;
   late StreamSubscription<Position> _locationSubscription;
   List<Delivery> _deliveries = [];
-  Timer? _locationTimer;
   final PopupController _popupController = PopupController(); // Contrôleur de popup
 
   @override
@@ -36,26 +35,10 @@ class _DeliveryMapScreenState extends State<DeliveryMapScreen> {
       });
     });
 
-   // _startLocationUpdates();
+
     _loadDeliveries();
   }
-/*
-  void _startLocationUpdates() {
-    _getCurrentLocation();
-    _locationTimer = Timer.periodic(Duration(seconds: 5), (Timer t) => _getCurrentLocation());
-  }
 
-  void _getCurrentLocation() async {
-    try {
-      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.best);
-      setState(() {
-        _currentPosition = LatLng(position.latitude, position.longitude);
-      });
-    } catch (e) {
-      print('Erreur lors de la récupération de la localisation : $e');
-    }
-  }
-*/
   Future<void> _loadDeliveries() async {
     try {
       final deliveries = await DeliveryService.getDeliveriesNow();
@@ -71,7 +54,6 @@ class _DeliveryMapScreenState extends State<DeliveryMapScreen> {
 
   @override
   void dispose() {
-    //_locationTimer?.cancel();
     _locationSubscription.cancel();
     super.dispose();
   }
