@@ -9,8 +9,8 @@ class Delivery {
   final String validationCode;
   final String reference;
   final Location deliveryAddress;
-  final DateTime deliveryDateTime;  // Combined DateTime field
-  final String deliveryType;
+  final DateTime deliveryDateTimeBegin;  // Combined DateTime field
+  final DateTime deliveryDateTimeEnd;  // Combined DateTime field
   String status;
   final String livreurId;
   final Livreur? livreur;
@@ -24,8 +24,8 @@ class Delivery {
     required this.validationCode,
     required this.reference,
     required this.deliveryAddress,
-    required this.deliveryDateTime,  // Combined DateTime field
-    required this.deliveryType,
+    required this.deliveryDateTimeBegin,  // Combined DateTime field
+    required this.deliveryDateTimeEnd,
     required this.status,
     required this.livreurId,
     this.livreur,
@@ -41,8 +41,8 @@ factory Delivery.fromJson(Map<String, dynamic> json) {
     validationCode: json['validationCode'] ?? '',
     reference: json['reference'] ?? '',
     deliveryAddress: Location.fromJson(json['deliveryAddress'] ?? {}),
-    deliveryDateTime: DateTime.parse(json['deliveryDateTime'] ?? ''),
-    deliveryType: json['deliveryType'] ?? '',
+    deliveryDateTimeBegin: DateTime.parse(json['deliveryDateTimeBegin'] ?? ''),
+    deliveryDateTimeEnd: DateTime.parse(json['deliveryDateTimeEnd'] ?? ''),
     status: json['status'] ?? '',
     livreurId: json['livreurId'] != null && json['livreurId'] is Map<String, dynamic> 
         ? (json['livreurId']['_id'] ?? '')
@@ -64,8 +64,8 @@ factory Delivery.fromJson(Map<String, dynamic> json) {
       'validationCode': validationCode,
       'reference': reference,
       'deliveryAddress': deliveryAddress.toJson(),
-      'deliveryDateTime': deliveryDateTime.toIso8601String(),  // Combined DateTime field
-      'deliveryType': deliveryType,
+      'deliveryDateTimeBegin': deliveryDateTimeBegin.toIso8601String(),  // Combined DateTime field
+      'deliveryDateTimeEnd': deliveryDateTimeEnd,
       'status': status,
       'livreurId': livreurId,
       'livreur': livreur?.toJson(),  // Serializing the nested Livreur object

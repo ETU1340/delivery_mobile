@@ -51,6 +51,14 @@ class _DeliveryScheduleState extends State<DeliverySchedule> {
     }
   }
 
+  // Vérifier si la livraison est aujourd'hui (sans tenir compte de l'heure)
+  bool _isDeliveryToday(Delivery delivery) {
+    final now = DateTime.now();
+    return now.year == delivery.deliveryDateTimeBegin.year &&
+           now.month == delivery.deliveryDateTimeBegin.month &&
+           now.day == delivery.deliveryDateTimeBegin.day;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -86,16 +94,16 @@ class _DeliveryScheduleState extends State<DeliverySchedule> {
               separatorBuilder: (context, index) => Divider(), // Séparateur entre les livraisons
               itemCount: _deliveries
                   .where((delivery) =>
-                      delivery.deliveryDateTime.year == _selectedDay.year &&
-                      delivery.deliveryDateTime.month == _selectedDay.month &&
-                      delivery.deliveryDateTime.day == _selectedDay.day)
+                      delivery.deliveryDateTimeBegin.year == _selectedDay.year &&
+                      delivery.deliveryDateTimeBegin.month == _selectedDay.month &&
+                      delivery.deliveryDateTimeBegin.day == _selectedDay.day)
                   .length,
               itemBuilder: (context, index) {
                 final delivery = _deliveries
                     .where((delivery) =>
-                        delivery.deliveryDateTime.year == _selectedDay.year &&
-                        delivery.deliveryDateTime.month == _selectedDay.month &&
-                        delivery.deliveryDateTime.day == _selectedDay.day)
+                        delivery.deliveryDateTimeBegin.year == _selectedDay.year &&
+                        delivery.deliveryDateTimeBegin.month == _selectedDay.month &&
+                        delivery.deliveryDateTimeBegin.day == _selectedDay.day)
                     .toList()[index];
 
                 return ListTile(
@@ -104,14 +112,14 @@ class _DeliveryScheduleState extends State<DeliverySchedule> {
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   subtitle: Text(
-                    'Heure: ${_timeFormat.format(delivery.deliveryDateTime)} - Statut: ${delivery.status}',
+                    'Heure Debut: ${_timeFormat.format(delivery.deliveryDateTimeBegin)} - Heure Fin: ${_timeFormat.format(delivery.deliveryDateTimeEnd)}',
                     style: TextStyle(color: _getColorForStatus(delivery.status)), // Appliquer couleur au sous-titre
                   ),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Afficher le bouton de localisation
-                      if (delivery.status != "Terminé" && delivery.status != "Annulé")
+                      // Afficher le bouton de localisation uniquement pour les livraisons aujourd'hui
+                      if (_isDeliveryToday(delivery))
                         IconButton(
                           icon: Icon(Icons.map, color: _getColorForStatus(delivery.status)),
                           onPressed: () {

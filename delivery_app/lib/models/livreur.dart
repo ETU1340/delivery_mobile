@@ -95,11 +95,13 @@ class UnavailablePeriod {
   final DateTime startDate;
   final DateTime endDate;
   final String reason;
+  final String status;
 
   UnavailablePeriod({
     required this.startDate,
     required this.endDate,
     required this.reason,
+    required this.status,
   });
 
   // Convert from JSON
@@ -108,6 +110,7 @@ class UnavailablePeriod {
       startDate: DateTime.parse(json['startDate']),
       endDate: DateTime.parse(json['endDate']),
       reason: json['reason'] ?? '',
+      status: json['status'] ?? '',
     );
   }
 
@@ -116,5 +119,6 @@ class UnavailablePeriod {
         'startDate': startDate.toIso8601String(),
         'endDate': endDate.toIso8601String(),
         'reason': reason,
+        'status': status,
       };
 }

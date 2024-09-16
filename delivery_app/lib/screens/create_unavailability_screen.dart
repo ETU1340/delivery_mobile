@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
+import 'package:http/http.dart' as http; // Pour les appels HTTP
+import 'dart:convert'; // Pour la manipulation JSON
+import '../utils/api_urls.dart';
+import '../services/livreur_service.dart';
+import '../models/livreur.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 class UnavailabilityForm extends StatefulWidget {
   @override
   _UnavailabilityFormState createState() => _UnavailabilityFormState();
@@ -12,6 +17,7 @@ class _UnavailabilityFormState extends State<UnavailabilityForm> {
   DateTime? _startDate;
   DateTime? _endDate;
 
+  // Méthode pour sélectionner la date de début
   void _pickStartDate() async {
     DateTime? picked = await showDatePicker(
       context: context,
@@ -27,6 +33,7 @@ class _UnavailabilityFormState extends State<UnavailabilityForm> {
     }
   }
 
+  // Méthode pour sélectionner la date de fin
   void _pickEndDate() async {
     DateTime? picked = await showDatePicker(
       context: context,
@@ -42,13 +49,59 @@ class _UnavailabilityFormState extends State<UnavailabilityForm> {
     }
   }
 
-  void _submitForm() {
+  // Fonction pour soumettre le formulaire
+  Future<void> _submitForm() async {
     if (_formKey.currentState?.validate() ?? false) {
       _formKey.currentState?.save();
+
       // Traiter les données du formulaire ici
       print('Raison: $_reason');
       print('Date de début: $_startDate');
       print('Date de fin: $_endDate');
+
+      // Appel API pour sauvegarder la demande d'indisponibilité
+      await _saveUnavailability();
+    }
+  }
+
+  // Fonction pour sauvegarder la demande d'indisponibilité via un appel API
+  Future<void> _saveUnavailability() async {
+    Livreur? livreur = await LivreurService.getLivreurSession();
+    try {
+      final url = Uri.parse(ApiUrls.livreurs + "/" + livreur!.id + "/unavailable"); // Remplacez par l'URL de votre API
+      print(url);
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('authToken');
+      final response = await http.post(
+        url,
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'x-auth-token': '$token', // Ajoutez un token d'autorisation si nécessaire
+        },
+        body: jsonEncode({
+          'reason': _reason,
+          'startDate': _startDate?.toIso8601String(),
+          'endDate': _endDate?.toIso8601String(),
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        // Succès de l'API
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Demande d\'indisponibilité sauvegardée avec succès')),
+        );
+        Navigator.pop(context); // Fermer le formulaire après soumission
+      } else {
+        // Erreur de l'API
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur lors de la sauvegarde de la demande')),
+        );
+      }
+    } catch (e) {
+      print('Erreur lors de l\'appel API: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors de l\'envoi de la demande')),
+      );
     }
   }
 
