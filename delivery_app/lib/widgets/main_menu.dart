@@ -111,7 +111,8 @@ class _MainMenuState extends State<MainMenu> with SingleTickerProviderStateMixin
                   roomId: livreur!.id,  // Utilisez un identifiant unique pour la salle de chat
                   delivererId: livreur!.id,  // Remplacez par l'ID du livreur
                   managerId: livreur!.managerId!,
-                  role: livreur!.role!,  // Remplacez par l'ID du manager
+                  role: livreur!.role!,
+                  name:livreur!.name  // Remplacez par l'ID du manager
                 )));
               },
             ),

@@ -12,12 +12,14 @@ class ChatScreen extends StatefulWidget {
   final String delivererId;
   final String managerId;
   final String role;
+  final String name;
 
   ChatScreen({
     required this.roomId,
     required this.delivererId,
     required this.managerId,
     required this.role,
+    required this.name,
   });
 
   @override
@@ -29,7 +31,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final List<Map<String, dynamic>> _messages = [];
   late DiscussionService _discussionService;
   final DateFormat _timeFormat = DateFormat('HH:mm'); // Format d'heure
-  String managerName = "Manager Rakoto"; // Ajout du nom du manager (à remplacer par une info réelle)
+  String managerName = "Manager RABE"; // Ajout du nom du manager (à remplacer par une info réelle)
 
   // Notification setup
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
@@ -63,7 +65,7 @@ class _ChatScreenState extends State<ChatScreen> {
       });
 
       // Envoyer une notification pour chaque message reçu
-      _showNotification(messageData['message'], widget.roomId);
+      _showNotification(messageData['message'], widget.roomId, messageData['senderName']);
     });
 
     // Charger les informations du manager
@@ -71,7 +73,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   // Méthode pour afficher la notification locale
-  Future<void> _showNotification(String message,String roomId) async {
+  Future<void> _showNotification(String message,String roomId,String senderName) async {
     // ignore: prefer_const_constructors
   var androidPlatformChannelSpecifics = AndroidNotificationDetails(
     'channel_id', // ID du canal de notification
@@ -90,7 +92,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     await flutterLocalNotificationsPlugin.show(
       0,
-      'Nouveau message reçu',
+      '$senderName vous a envoyé un message',
       message,
       platformChannelSpecifics,
       payload: roomId,
@@ -107,6 +109,7 @@ class _ChatScreenState extends State<ChatScreen> {
           delivererId: widget.delivererId,
           managerId: widget.managerId,
           role: widget.role,
+          name: widget.name
         ),
       ));
     }
@@ -151,6 +154,7 @@ class _ChatScreenState extends State<ChatScreen> {
         _controller.text,
         widget.roomId,
         widget.role,
+        widget.name
       );
 
       setState(() {
