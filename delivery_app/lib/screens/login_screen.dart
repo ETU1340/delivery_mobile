@@ -41,7 +41,8 @@ class _LoginPageState extends State<LoginScreen> {
       appBar: AppBar(
         title: Text('Connexion'),
         backgroundColor: Colors.blue, // Couleur principale
-        elevation: 0, // Suppression de l'ombre pour un design plus minimaliste
+        elevation: 0, 
+        automaticallyImplyLeading: false,// Suppression de l'ombre pour un design plus minimaliste
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

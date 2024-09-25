@@ -57,6 +57,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     // Écouter les messages reçus
     socketService.onMessageReceived((messageData) {
+      messageData['timestamp'] = _timeFormat.format(messageData['timestamp']);
       setState(() {
         _messages.add(messageData);
       });
@@ -79,7 +80,6 @@ class _ChatScreenState extends State<ChatScreen> {
     importance: Importance.max,
     priority: Priority.high,
     ticker: 'ticker',
-    sound: RawResourceAndroidNotificationSound('notification_sound'), // Son personnalisé
     playSound: true,
   );
 
