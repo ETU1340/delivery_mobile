@@ -59,7 +59,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
     // Écouter les messages reçus
     socketService.onMessageReceived((messageData) {
-      messageData['timestamp'] = _timeFormat.format(messageData['timestamp']);
+      String formattedTime = _timeFormat.format(DateTime.parse(messageData['timestamp']));
+      messageData['timestamp'] = formattedTime;
+
       setState(() {
         _messages.add(messageData);
       });
