@@ -137,8 +137,7 @@ class _DeliveryScheduleState extends State<DeliverySchedule> {
                           icon: Icon(Icons.play_circle_outline, color: _getColorForStatus(delivery.status)),
                           onPressed: () async {
                             // Vérifier si une autre livraison est "En cours"
-                            bool hasOngoingDelivery = _deliveries.any((d) => d.status == 'En cours');
-
+                            bool hasOngoingDelivery = _deliveries.any((d) => d.status == 'En cours' && d.deliveryDateTimeEnd.isBefore(delivery.deliveryDateTimeEnd) && d.deliveryDateTimeBegin.isAfter(delivery.deliveryDateTimeBegin));
                             if (hasOngoingDelivery) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
