@@ -113,7 +113,7 @@ class _DeliveryMapScreenState extends State<DeliveryMapScreen> {
                       point: LatLng(delivery.deliveryAddress.latitude, delivery.deliveryAddress.longitude),
                       builder: (ctx) => Icon(
                         Icons.person_pin_circle,
-                        color: Colors.red,
+                        color: Colors.green,
                         size: 25.0,
                       ),
                     );
@@ -130,7 +130,7 @@ class _DeliveryMapScreenState extends State<DeliveryMapScreen> {
                       point: LatLng(delivery.deliveryAddress.latitude, delivery.deliveryAddress.longitude),
                       builder: (ctx) => Icon(
                         Icons.person_pin_circle,
-                        color: Colors.red,
+                        color: Colors.green,
                         size: 25.0,
                       ),
                     );
@@ -188,7 +188,7 @@ class _DeliveryMapScreenState extends State<DeliveryMapScreen> {
                   SizedBox(height: 4.0),
                   Row(
                     children: [
-                      Icon(Icons.person_pin_circle, color: Colors.red, size: 20.0),
+                      Icon(Icons.person_pin_circle, color: Colors.green, size: 20.0),
                       SizedBox(width: 4.0),
                       Text('Livraison'),
                     ],
